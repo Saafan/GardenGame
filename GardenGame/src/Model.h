@@ -27,8 +27,8 @@ class Model
 {
 
 public:
-
-
+	Model();
+	static int numofModels;
 	
 	void Render();
 
@@ -60,6 +60,8 @@ public:
 	int slices = 10; //Also SidesNum
 	int stacks = 10; //Also Rings
 
+	int group = -1;
+	std::string id = "0";
 	bool uniformScale = false;
 
 	std::vector<float> position{0.0f, 0.0f, 0.0f};

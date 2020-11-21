@@ -1,6 +1,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_opengl2.h>
 #include <imgui/imgui_impl_glut.h>
+#include <algorithm>
 #include <stdio.h>
 #include <sstream>
 #include <iomanip>
@@ -11,6 +12,8 @@
 #include "ModelsGenerator.h"
 #include "Randomize.h"
 #include "Texture.h"
+#include <map>
+#include <set>
 
 struct vec3
 {
@@ -32,7 +35,7 @@ float angle = 0.0f;
 static float lightColor[]{ 1.0f, 1.0f, 1.0f };
 static float lightPos[]{ 5.6f, 10.0f, 7.5f };
 
-void WriteHeader(std::string);
+void WriteHeader(std::string code);
 
 void SetupCamera()
 {
@@ -52,6 +55,8 @@ void SetupCamera()
 
 std::vector<Model> models;
 
+std::map<int, int> groups;
+
 void SetupLights()
 {
 
@@ -70,6 +75,82 @@ void SetupLights()
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightIntensity);
 }
 
+
+
+void ShowModelAttributes(int i, Model& model, std::string name)
+{
+	ImGui::Checkbox(std::string("Uniform Scale " + model.id).c_str(), &model.uniformScale);
+	ImGui::ColorEdit3(std::string("Color " + model.id).c_str(), &model.color.R);
+	ImGui::SliderFloat3(std::string("Position " + model.id).c_str(), &model.position.at(0), -2.0f, 2.0f);
+	if (model.uniformScale)
+	{
+		ImGui::SliderFloat(std::string("Scale " + model.id).c_str(), &model.scale.at(0), 0.01f, 5.0f);
+		model.scale.at(2) = model.scale.at(1) = model.scale.at(0);
+	}
+	else
+		ImGui::SliderFloat3(std::string("Scale " + model.id).c_str(), &model.scale.at(0), 0.01f, 5.0f);
+	ImGui::SliderFloat3(std::string("Rotate " + model.id).c_str(), &model.rotate.at(0), 0.0f, 360.0f);
+
+
+	if (model.GetPrimitive() == Primitive::Tours)
+	{
+		ImGui::SliderFloat(std::string("Inner Radius " + model.id).c_str(), &model.size, 0.0f, 2.0f);
+		ImGui::SliderFloat(std::string("Outer Radius " + model.id).c_str(), &model.modelHeight, 0.0f, 2.0f);
+	}
+
+	if (model.GetPrimitive() == Primitive::Cone)
+	{
+		ImGui::SliderFloat(std::string("Base " + model.id).c_str(), &model.size, 0.0f, 2.0f);
+		ImGui::SliderFloat(std::string("Height " + model.id).c_str(), &model.modelHeight, 0.0f, 2.0f);
+	}
+
+	if (model.GetPrimitive() == Primitive::Sphere)
+	{
+		ImGui::SliderFloat(std::string("Radius " + model.id).c_str(), &model.size, 0.0f, 2.0f);
+	}
+
+	if (model.GetPrimitive() == Primitive::Cylinder)
+	{
+		ImGui::SliderFloat(std::string("Base Radius " + model.id).c_str(), &model.size, 0.0f, 2.0f);
+		ImGui::SliderFloat(std::string("Top Radius " + model.id).c_str(), &model.radius, 0.0f, 2.0f);
+		ImGui::SliderFloat(std::string("Height " + model.id).c_str(), &model.modelHeight, 0.0f, 2.0f);
+	}
+
+	if (model.GetPrimitive() != Primitive::Cube && model.GetPrimitive() != Primitive::Teapot)
+	{
+		ImGui::SliderInt(std::string("Slices " + model.id).c_str(), &model.slices, 1, 50);
+		ImGui::SliderInt(std::string("Stacks " + model.id).c_str(), &model.stacks, 1, 50);
+	}
+
+	if (ImGui::Button(std::string("Delete: " + name).c_str()))
+	{
+
+		for (size_t q = 0; q < models.size(); q++)
+			if (&models.at(q) == &model)
+				models.erase(models.begin() + q);
+	}
+
+	if (ImGui::Button(std::string("Duplicate: " + name).c_str()))
+	{
+		Model newModel = model;
+		models.push_back(newModel);
+	}
+
+	for (size_t j = 0; j < groups.size() + 1; j++)
+	{
+		if (ImGui::Button(std::string("Add " + name + " to Group " + std::to_string(j)).c_str()))
+		{
+			if (model.group != -1)
+				groups.at(models.at(i).group)--;
+			model.group = j;
+			groups[model.group]++;
+		}
+		ImGui::SameLine();
+	}
+
+	ImGui::Spacing();
+
+}
 
 void RenderIMGUI()
 {
@@ -152,67 +233,54 @@ void RenderIMGUI()
 		teapot->CreateTeapot(0.5f);
 		models.push_back(*teapot);
 	}
+	int curretI = 0;
+	for (std::map<int, int>::iterator it = groups.begin(); it != groups.end(); ++it)
+	{
+		if (it->first == -1)
+		{
+			curretI++;
+			continue;
+		}
+		if (it->second == 0)
+		{
+			groups.erase(it);
+			continue;
+		}
 
+		if (ImGui::CollapsingHeader(std::string("Group " + std::to_string(it->first)).c_str()))
+		{
+			if (ImGui::Button(std::string("Delete Group " + std::to_string(it->first)).c_str()))
+			{
+				for (auto& model : models)
+					if (model.group == it->first)
+						model.group = -1;
+				it->second = 0;
+			}
+			std::cout << it->first << std::endl;
+			for (size_t j = 0; j < it->second; j++)
+			{
+				Model& model = models.at(curretI++);
+				std::string name;
+				name = model.GetPrimitveString() + " " + model.id;
+				ImGui::Indent(20);
+				if (ImGui::CollapsingHeader(name.c_str()))
+					ShowModelAttributes(j, model, name);
+				ImGui::Unindent(20);
+			}
+		}
+	}
 
 	for (int i = models.size(); i-- > 0; )
 	{
-		Model& model = models.at(i);
-
-		std::string name;
-
 		ImGui::Spacing();
 
-		name = model.GetPrimitveString() + " " + std::to_string(i);
+		Model& model = models.at(i);
+		std::string name;
+		name = model.GetPrimitveString() + " " + model.id;
 
-		if (ImGui::CollapsingHeader(name.c_str()))
+		if (model.group == -1 && ImGui::CollapsingHeader(name.c_str()))
 		{
-
-			ImGui::Checkbox(std::string("Uniform Scale " + std::to_string(i)).c_str(), &model.uniformScale);
-			ImGui::ColorEdit3(std::string("Color " + std::to_string(i)).c_str(), &model.color.R);
-			ImGui::SliderFloat3(std::string("Position " + std::to_string(i)).c_str(), &model.position.at(0), -1.0f, 1.0f);
-			if (model.uniformScale)
-			{
-				ImGui::SliderFloat(std::string("Scale " + std::to_string(i)).c_str(), &model.scale.at(0), 0.01f, 3.0f);
-				model.scale.at(2) = model.scale.at(1) = model.scale.at(0);
-			}
-			else
-				ImGui::SliderFloat3(std::string("Scale " + std::to_string(i)).c_str(), &model.scale.at(0), 0.01f, 3.0f);
-			ImGui::SliderFloat3(std::string("Rotate " + std::to_string(i)).c_str(), &model.rotate.at(0), 0.0f, 360.0f);
-
-
-			if (model.GetPrimitive() == Primitive::Tours)
-			{
-				ImGui::SliderFloat(std::string("Inner Radius " + std::to_string(i)).c_str(), &model.size, 0.0f, 2.0f);
-				ImGui::SliderFloat(std::string("Outer Radius " + std::to_string(i)).c_str(), &model.modelHeight, 0.0f, 2.0f);
-			}
-
-			if (model.GetPrimitive() == Primitive::Cone)
-			{
-				ImGui::SliderFloat(std::string("Base " + std::to_string(i)).c_str(), &model.size, 0.0f, 2.0f);
-				ImGui::SliderFloat(std::string("Height " + std::to_string(i)).c_str(), &model.modelHeight, 0.0f, 2.0f);
-			}
-
-			if (model.GetPrimitive() == Primitive::Sphere)
-			{
-				ImGui::SliderFloat(std::string("Radius " + std::to_string(i)).c_str(), &model.size, 0.0f, 2.0f);
-			}
-
-			if (model.GetPrimitive() == Primitive::Cylinder)
-			{
-				ImGui::SliderFloat(std::string("Base Radius " + std::to_string(i)).c_str(), &model.size, 0.0f, 2.0f);
-				ImGui::SliderFloat(std::string("Top Radius " + std::to_string(i)).c_str(), &model.radius, 0.0f, 2.0f);
-				ImGui::SliderFloat(std::string("Height " + std::to_string(i)).c_str(), &model.modelHeight, 0.0f, 2.0f);
-			}
-
-			if (model.GetPrimitive() != Primitive::Cube && model.GetPrimitive() != Primitive::Teapot)
-			{
-				ImGui::SliderInt(std::string("Slices " + std::to_string(i)).c_str(), &model.slices, 1, 50);
-				ImGui::SliderInt(std::string("Stacks " + std::to_string(i)).c_str(), &model.stacks, 1, 50);
-			}
-
-			if (ImGui::Button(std::string("Delete: " + name).c_str()))
-				models.erase(models.begin() + i);
-
+			ShowModelAttributes(i, model, name);
 		}
 	}
 
@@ -238,7 +306,7 @@ void RenderIMGUI()
 		for (size_t i = 0; i < models.size(); i++)
 		{
 			Model& model = models.at(i);
-			std::string name = model.GetPrimitveString() + " " + std::to_string(i) + "\n";
+			std::string name = model.GetPrimitveString() + " " + model.id + "\n";
 
 			glutCode << " // " + name;
 			glutCode << "glPushMatrix();\n";
@@ -267,10 +335,10 @@ void RenderIMGUI()
 
 			if (model.GetPrimitive() == Primitive::Cylinder)
 			{
-				glutCode << " GLUquadricObj* qobj" << std::to_string(i) << ";\n" ;
-				glutCode << " qobj" << std::to_string(i) << " = gluNewQuadric()"  << ";\n";
-				glutCode << " gluQuadricDrawStyle(qobj" << std::to_string(i) << ", GLU_FILL);\n";
-				glutCode << " gluCylinder( qobj" << std::to_string(i) << ", " << (model.size)  << ", " << (model.modelHeight) << ", " << (model.modelHeight) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
+				glutCode << " GLUquadricObj* qobj" << model.id << ";\n";
+				glutCode << " qobj" << model.id << " = gluNewQuadric()" << ";\n";
+				glutCode << " gluQuadricDrawStyle(qobj" << model.id << ", GLU_FILL);\n";
+				glutCode << " gluCylinder( qobj" << model.id << ", " << (model.size) << ", " << (model.modelHeight) << ", " << (model.modelHeight) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
 			}
 			glutCode << " glColor3f(" << 1 << ", " << 1 << ", " << 1 << ");\n";
 			glutCode << "glPopMatrix();\n \n";
@@ -282,7 +350,7 @@ void RenderIMGUI()
 
 	if (models.empty())
 		code << " \n \n";
-
+	std::vector<std::string> groupsCode;
 	for (size_t i = 0; i < models.size(); i++)
 	{
 		Model& model = models.at(i);
@@ -299,26 +367,32 @@ void RenderIMGUI()
 			code << name << ".CreateTeapot(" << model.size << ");\n";
 
 		if (model.GetPrimitive() == Primitive::Tours)
-			code << name << " .CreateTours(" << (model.size) << ", " << (model.modelHeight) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
+			code << name << ".CreateTours(" << (model.size) << ", " << (model.modelHeight) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
 
 		if (model.GetPrimitive() == Primitive::Cone)
-			code << name << " .CreateCone(" << (model.size) << ", " << (model.modelHeight) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
+			code << name << ".CreateCone(" << (model.size) << ", " << (model.modelHeight) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
 
 		if (model.GetPrimitive() == Primitive::Sphere)
-			code << name << " .CreateSphere(" << (model.size) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
+			code << name << ".CreateSphere(" << (model.size) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
 
 		if (model.GetPrimitive() == Primitive::Cylinder)
-			code << name << " .CreateCylinder(" << (model.size) << ", " << (model.radius) << ", " << (model.modelHeight) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
+			code << name << ".CreateCylinder(" << (model.size) << ", " << (model.radius) << ", " << (model.modelHeight) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
 
 		code << name << ".Translate(" << model.position.at(0) << ", " << model.position.at(1) << ", " << model.position.at(2) << ");\n";
 		code << name << ".Scale(" << model.scale.at(0) << ", " << model.scale.at(1) << ", " << model.scale.at(2) << ");\n";
 		code << name << ".Rotate(" << model.rotate.at(0) << ", " << model.rotate.at(1) << ", " << model.rotate.at(2) << ");\n";
 		code << name << ".SetColor(" << model.color.R << ", " << model.color.G << ", " << model.color.B << ");\n";
 
-		code << "models.emplace_back(" << name << ");\n \n";
+		if (model.group != -1)
+			code << name + ".group = " + std::to_string(model.group) + ";\n";
 
+		code << "models.emplace_back(" << name << ");\n";
 
+		if (model.group != -1)
+			groupsCode.push_back("groups.at(" + name + ".group).emplace_back(" + name + ");\n\n");
 	}
+
+
 	if (showCode)
 	{
 		ImGui::Begin("Code:");
@@ -338,13 +412,15 @@ void RenderIMGUI()
 		ImGui::Text("UP, LEFT, DOWN, RIGHT Arrows to change Camera's Center");
 		ImGui::End();
 	}
-	WriteHeader(code.str());
+
+	//WriteHeader(code.str());
 
 	WIDTH = glutGet(GLUT_WINDOW_WIDTH);
 	HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
 	glViewport(0, 0, WIDTH, HEIGHT);
 
 }
+
 void RenderScene(void)
 {
 	SetupCamera();
@@ -403,8 +479,6 @@ void glut_display_func()
 	ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
 
-
-
 	glutSwapBuffers();
 	glutPostRedisplay();
 
@@ -417,12 +491,12 @@ void Generate(int value)
 
 void WriteHeader(std::string code)
 {
-	std::ofstream myfile("src/ModelsGenerator.h");
-	if (myfile.is_open())
+	std::ofstream myFile("src/ModelsGenerator.h");
+	if (myFile.is_open())
 	{
-		myfile << "#pragma once\n#include \"Model.h\"\nvoid GenerateModels(std::vector<Model>& models)\n {\n\n";
-		myfile << code;
-		myfile << "}\n";
+		myFile << "#pragma once\n#include \"Model.h\"\nvoid GenerateModels(std::vector<Model>& models)\n{\n\n";
+		myFile << code;
+		myFile << "}\n";
 	}
 	else std::cout << "Unable to open file";
 }
@@ -464,7 +538,7 @@ int main(int argc, char** argv)
 
 	glutKeyboardFunc(key);
 	glutSpecialFunc(key);
-	glutTimerFunc(100, Generate, 100);
+	Generate(100);
 	glutMainLoop();
 
 

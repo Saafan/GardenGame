@@ -2,6 +2,14 @@
 #include "Texture.h"
 
 
+
+Model::Model()
+{
+	id = std::to_string(numofModels++);
+}
+
+int Model::numofModels = 0;
+
 void Model::Translate(float f_x, float f_y, float f_z)
 {
 	position.at(0) = f_x;
@@ -68,7 +76,6 @@ void Model::SetColor(float R, float G, float B)
 	color.R = R;
 	color.G = G;
 	color.B = B;
-
 }
 
 void drawCircle(int x, int y, float r) {
@@ -161,5 +168,3 @@ void Model::Render()
 
 	glPopMatrix();
 }
-
-
