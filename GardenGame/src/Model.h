@@ -9,11 +9,7 @@ enum class Primitive
 	Tours = 3,
 	Teapot = 4,
 	Sphere = 5,
-};
-
-enum class ModelType
-{
-	Null
+	WireCube
 };
 
 struct Color
@@ -29,7 +25,7 @@ class Model
 public:
 	Model();
 	static int numofModels;
-	
+
 	void Render();
 
 	void Translate(float f_x, float f_y, float f_z);
@@ -50,6 +46,7 @@ public:
 	void CreateTours(float innerRadius = 0.1f, float outerRadius = 0.8f, int sidesNum = 10, int rings = 10);
 	void CreateCylinder(float baseRadius = 0.5f, float topRadius = 0.5f, float height = 0.5f, float slices = 10, float stacks = 10);
 	void CreateCube(float size = 0.5f);
+	void CreateWireCube(float size = 0.5f);
 	void CreateCone(float base = 0.5f, float height = 0.5f, int slices = 10, int stacks = 10);
 	void CreateSphere(float radius = 0.5f, float slices = 10, float stacks = 10);
 	void CreateTeapot(float size = 0.5f);
@@ -63,17 +60,18 @@ public:
 	int group = -1;
 	std::string id = "0";
 	bool uniformScale = false;
+	bool collider = false;
 
-	std::vector<float> position{0.0f, 0.0f, 0.0f};
+	std::vector<float> position{ 0.0f, 0.0f, 0.0f };
 	std::vector<float> scale{ 1.0f, 1.0f, 1.0f };
 	std::vector<float> rotate{ 0.0f, 0.0f, 0.0f };
+	std::vector<float> groupTrans{0.0f, 0.0f, 0.0f};
+
 	Color color;
 
 private:
 	Primitive prim;
-
-	ModelType type = ModelType::Null;
-
+	
 	void AssignVariables(Primitive prim = Primitive::Cube, float size = 0.0f, float radius = 0.0f, float outerRadius = 0.0f, int slices = 0, int slacks = 0);
 
 };

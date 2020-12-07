@@ -2,7 +2,6 @@
 #include <imgui/imgui_impl_opengl2.h>
 #include <imgui/imgui_impl_glut.h>
 #include <algorithm>
-#include <stdio.h>
 #include <sstream>
 #include <iomanip>
 #include <fstream>
@@ -10,10 +9,26 @@
 #include "Renderer.h"
 #include "Model.h"
 #include "ModelsGenerator.h"
-#include "Randomize.h"
 #include "Texture.h"
 #include <map>
-#include <set>
+
+
+std::vector<std::string> modelGroups
+{
+	"Character",
+	"Grass",
+	"Table",
+	"Pergola",
+	"Swing",
+	"Goal",
+	"Park Bench",
+	"Ground",
+	"Fence"
+
+};
+
+std::vector<bool> modelExpand(modelGroups.size(), false);
+std::vector<float[3]> modelTrans(modelGroups.size());
 
 struct vec3
 {
@@ -25,12 +40,11 @@ struct vec3
 vec3 cameraPos;
 vec3 cameraFront;
 
-
 int WIDTH = 1100;
 int HEIGHT = 950;
 
-float radius = 1.5;
-float angle = 0.0f;
+float radius = 1.5f;
+float angle = -45.11f;
 
 static float lightColor[]{ 1.0f, 1.0f, 1.0f };
 static float lightPos[]{ 5.6f, 10.0f, 7.5f };
@@ -50,12 +64,11 @@ void SetupCamera()
 	cameraPos.x = std::sin(angle * 3.14f / 180.0f) * radius;
 	cameraPos.z = std::cos(angle * 3.14f / 180.0f) * radius;
 
-	gluLookAt(cameraPos.x + 1.0, cameraPos.y + 1.0, cameraPos.z, cameraFront.x, cameraFront.y, cameraFront.z, 0.0f, 1.0f, 0.0f);
+	gluLookAt(cameraPos.x + 1.0, cameraPos.y + 3.0, cameraPos.z + 2.8, cameraFront.x, cameraFront.y, cameraFront.z, 0.0f, 1.0f, 0.0f);
 }
 
 std::vector<Model> models;
 
-std::map<int, int> groups;
 
 void SetupLights()
 {
@@ -76,19 +89,30 @@ void SetupLights()
 }
 
 
+void SortModels()
+{
+	std::sort(models.begin(),
+		models.end(),
+		[](const Model& lhs, const Model& rhs)
+		{
+			return rhs.group > lhs.group;
+		});
+}
 
 void ShowModelAttributes(int i, Model& model, std::string name)
 {
 	ImGui::Checkbox(std::string("Uniform Scale " + model.id).c_str(), &model.uniformScale);
 	ImGui::ColorEdit3(std::string("Color " + model.id).c_str(), &model.color.R);
 	ImGui::SliderFloat3(std::string("Position " + model.id).c_str(), &model.position.at(0), -2.0f, 2.0f);
+
 	if (model.uniformScale)
 	{
-		ImGui::SliderFloat(std::string("Scale " + model.id).c_str(), &model.scale.at(0), 0.01f, 5.0f);
+		ImGui::SliderFloat(std::string("Scale " + model.id).c_str(), &model.scale.at(0), 0.01f, 10.0f);
 		model.scale.at(2) = model.scale.at(1) = model.scale.at(0);
 	}
 	else
-		ImGui::SliderFloat3(std::string("Scale " + model.id).c_str(), &model.scale.at(0), 0.01f, 5.0f);
+		ImGui::SliderFloat3(std::string("Scale " + model.id).c_str(), &model.scale.at(0), 0.01f, 10.0f);
+
 	ImGui::SliderFloat3(std::string("Rotate " + model.id).c_str(), &model.rotate.at(0), 0.0f, 360.0f);
 
 
@@ -124,38 +148,51 @@ void ShowModelAttributes(int i, Model& model, std::string name)
 
 	if (ImGui::Button(std::string("Delete: " + name).c_str()))
 	{
-
 		for (size_t q = 0; q < models.size(); q++)
 			if (&models.at(q) == &model)
 				models.erase(models.begin() + q);
+		return;
 	}
 
 	if (ImGui::Button(std::string("Duplicate: " + name).c_str()))
 	{
 		Model newModel = model;
+		newModel.id = std::to_string(model.numofModels++);
 		models.push_back(newModel);
+		SortModels();
 	}
 
-	for (size_t j = 0; j < groups.size() + 1; j++)
-	{
-		if (ImGui::Button(std::string("Add " + name + " to Group " + std::to_string(j)).c_str()))
+	ImGui::Indent(20);
+	if (ImGui::CollapsingHeader(std::string("Group " + name + " in ").c_str()))
+		for (size_t i = 0; i < modelGroups.size(); i++)
 		{
-			if (model.group != -1)
-				groups.at(models.at(i).group)--;
-			model.group = j;
-			groups[model.group]++;
+			if (ImGui::Button(std::string(modelGroups.at(i) + " " + name).c_str()))
+			{
+				model.group = i;
+				SortModels();
+			}
+			if ((i % 3 != 0) || i == 0)
+				ImGui::SameLine();
 		}
-		ImGui::SameLine();
-	}
+	ImGui::Spacing();
+	ImGui::Unindent(20);
 
+	if (ImGui::Button(std::string("Delete " + model.id + " from Group").c_str()))
+		model.group = -1;
 	ImGui::Spacing();
 
 }
+
+
+
 
 void RenderIMGUI()
 {
 	static bool showCode = false;
 	ImGui::Begin("3D Editor");
+
+
+
 
 	ImGui::Checkbox("Show Code", &showCode);
 
@@ -182,7 +219,7 @@ void RenderIMGUI()
 			lightPos[0] = 5.6f;
 			lightPos[1] = 10.0f;
 			lightPos[2] = 7.5f;
-		};
+		}
 
 		ImGui::ColorEdit3("Light Color", &lightColor[0]);
 		ImGui::SliderFloat3("Light Position", &lightPos[0], -10.0, 10.0);
@@ -192,13 +229,13 @@ void RenderIMGUI()
 	ImGui::Spacing();
 	ImGui::Spacing();
 
-
 	if (ImGui::Button("Cube"))
 	{
 		Model* cube = new Model();
 		cube->CreateCube();
 		models.push_back(*cube);
 	}
+
 	ImGui::SameLine();
 	if (ImGui::Button("Sphere"))
 	{
@@ -233,43 +270,18 @@ void RenderIMGUI()
 		teapot->CreateTeapot(0.5f);
 		models.push_back(*teapot);
 	}
-	int curretI = 0;
-	for (std::map<int, int>::iterator it = groups.begin(); it != groups.end(); ++it)
-	{
-		if (it->first == -1)
-		{
-			curretI++;
-			continue;
-		}
-		if (it->second == 0)
-		{
-			groups.erase(it);
-			continue;
-		}
 
-		if (ImGui::CollapsingHeader(std::string("Group " + std::to_string(it->first)).c_str()))
-		{
-			if (ImGui::Button(std::string("Delete Group " + std::to_string(it->first)).c_str()))
-			{
-				for (auto& model : models)
-					if (model.group == it->first)
-						model.group = -1;
-				it->second = 0;
-			}
-			std::cout << it->first << std::endl;
-			for (size_t j = 0; j < it->second; j++)
-			{
-				Model& model = models.at(curretI++);
-				std::string name;
-				name = model.GetPrimitveString() + " " + model.id;
-				ImGui::Indent(20);
-				if (ImGui::CollapsingHeader(name.c_str()))
-					ShowModelAttributes(j, model, name);
-				ImGui::Unindent(20);
-			}
-		}
+	if (ImGui::Button("Collision Box"))
+	{
+		Model* cube = new Model();
+		cube->CreateWireCube();
+		cube->collider = true;
+		models.push_back(*cube);
 	}
 
+
+	int lastGroup = -1;
+	SortModels();
 	for (int i = models.size(); i-- > 0; )
 	{
 		ImGui::Spacing();
@@ -278,9 +290,35 @@ void RenderIMGUI()
 		std::string name;
 		name = model.GetPrimitveString() + " " + model.id;
 
-		if (model.group == -1 && ImGui::CollapsingHeader(name.c_str()))
+		if (model.group == -1)
 		{
-			ShowModelAttributes(i, model, name);
+			if (ImGui::CollapsingHeader(name.c_str()))
+				ShowModelAttributes(i, model, name);
+		}
+		else
+		{
+			if (lastGroup != model.group)
+				if (ImGui::CollapsingHeader(modelGroups.at(model.group).c_str()))
+				{
+					modelExpand.at(model.group) = true;
+					ImGui::SliderFloat3(std::string(modelGroups.at(model.group)).c_str(), modelTrans.at(model.group), -2.0f, 2.0f);
+				}
+				else
+					modelExpand.at(model.group) = false;
+
+			if (modelExpand.at(model.group))
+			{
+				model.groupTrans.at(0) = modelTrans.at(model.group)[0];
+				model.groupTrans.at(1) = modelTrans.at(model.group)[1];
+				model.groupTrans.at(2) = modelTrans.at(model.group)[2];
+
+				ImGui::Indent(20);
+				if (ImGui::CollapsingHeader(name.c_str()))
+					ShowModelAttributes(i, model, name);
+				ImGui::Unindent(20);
+			}
+
+			lastGroup = model.group;
 		}
 	}
 
@@ -294,10 +332,8 @@ void RenderIMGUI()
 	std::stringstream code;
 	std::stringstream glutCode;
 
-
 	if (isGlutCode)
 	{
-
 		glutCode << std::setprecision(4) << std::noshowbase;
 
 		if (models.empty())
@@ -308,7 +344,11 @@ void RenderIMGUI()
 			Model& model = models.at(i);
 			std::string name = model.GetPrimitveString() + " " + model.id + "\n";
 
-			glutCode << " // " + name;
+			if (model.group != -1)
+				code << " // " + name + " of Group " + modelGroups.at(model.group) + "\n";
+			else
+				code << " // " + name + "\n";
+
 			glutCode << "glPushMatrix();\n";
 			glutCode << " glTranslatef(" << (model.position.at(0)) << ", " << (model.position.at(1)) << ", " << (model.position.at(2)) << ");\n";
 
@@ -350,18 +390,23 @@ void RenderIMGUI()
 
 	if (models.empty())
 		code << " \n \n";
-	std::vector<std::string> groupsCode;
 	for (size_t i = 0; i < models.size(); i++)
 	{
 		Model& model = models.at(i);
 		std::string name = model.GetPrimitveString() + std::to_string(i);
 
-		code << " // " + name + "\n";
-		code << "Model " << name << ";\n";
+		if (model.group != -1)
+			code << " // " + name + " of Group " + modelGroups.at(model.group) + "\n";
+		else
+			code << " // " + name + "\n";
 
+		code << "Model " << name << ";\n";
 
 		if (model.GetPrimitive() == Primitive::Cube)
 			code << name << ".CreateCube(" << model.size << ");\n";
+
+		if (model.GetPrimitive() == Primitive::WireCube)
+			code << name << ".CreateWireCube(" << model.size << ");\n";
 
 		if (model.GetPrimitive() == Primitive::Teapot)
 			code << name << ".CreateTeapot(" << model.size << ");\n";
@@ -378,18 +423,17 @@ void RenderIMGUI()
 		if (model.GetPrimitive() == Primitive::Cylinder)
 			code << name << ".CreateCylinder(" << (model.size) << ", " << (model.radius) << ", " << (model.modelHeight) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
 
-		code << name << ".Translate(" << model.position.at(0) << ", " << model.position.at(1) << ", " << model.position.at(2) << ");\n";
+		code << name << ".Translate(" << model.position.at(0) + model.groupTrans.at(0) << ", " << model.position.at(1) + model.groupTrans.at(1) << ", " << model.position.at(2) + model.groupTrans.at(2) << ");\n";
 		code << name << ".Scale(" << model.scale.at(0) << ", " << model.scale.at(1) << ", " << model.scale.at(2) << ");\n";
 		code << name << ".Rotate(" << model.rotate.at(0) << ", " << model.rotate.at(1) << ", " << model.rotate.at(2) << ");\n";
 		code << name << ".SetColor(" << model.color.R << ", " << model.color.G << ", " << model.color.B << ");\n";
+		if (model.collider)
+			code << name << ".collider = " << "true;\n";
 
 		if (model.group != -1)
-			code << name + ".group = " + std::to_string(model.group) + ";\n";
+			code << name << ".group = " << model.group << ";\n";
 
-		code << "models.emplace_back(" << name << ");\n";
-
-		if (model.group != -1)
-			groupsCode.push_back("groups.at(" + name + ".group).emplace_back(" + name + ");\n\n");
+		code << "models.emplace_back(" << name << ");\n\n";
 	}
 
 
@@ -413,7 +457,7 @@ void RenderIMGUI()
 		ImGui::End();
 	}
 
-	//WriteHeader(code.str());
+	WriteHeader(code.str());
 
 	WIDTH = glutGet(GLUT_WINDOW_WIDTH);
 	HEIGHT = glutGet(GLUT_WINDOW_HEIGHT);
@@ -429,12 +473,31 @@ void RenderScene(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.2f, 0.5f, 0.8f, 1.0f);
 
-	for (size_t i = 0; i < models.size(); i++)
-	{
-		models.at(i).Render();
-	}
+	for (auto& model : models)
+		model.Render();
 
 	RenderIMGUI();
+}
+
+
+bool ModelsIntresect(Model& model1, Model& model2, float x, float z)
+{
+	if (std::abs((model1.position.at(0) + x) - model2.position.at(0)) < model1.scale.at(0) / 4 + model2.scale.at(0) / 4)
+		if (std::abs(model1.position.at(1) - model2.position.at(1)) < model1.scale.at(1) / 4 + model2.scale.at(1) / 4)
+			if (std::abs((model1.position.at(2) + z) - model2.position.at(2)) < model1.scale.at(2) / 4 + model2.scale.at(2) / 4)
+				return true;
+	return false;
+}
+
+bool CheckCollision(float x, float z)
+{
+	for (auto& model : models)
+		if (model.collider)
+			for (auto& modelCollision : models)
+				if (modelCollision.collider && &modelCollision != &model && model.group != -1)
+					if (ModelsIntresect(model, modelCollision, x, z) && modelGroups.at(model.group) == "Character")
+							return true;
+	return false;
 }
 
 void key(unsigned char key, int x, int y)
@@ -449,20 +512,52 @@ void key(unsigned char key, int x, int y)
 	if (key == 'd')
 		angle += 5.0f;
 
+	if (key == 'q')
+		cameraPos.y += 0.1f;
+	if (key == 'e')
+		cameraPos.y -= 0.1f;
+
+	if (key == 't')
+	{
+		angle = -45.11f;
+		radius = 1.5f;
+	}
+
+	if (key == 'y')
+	{
+		angle = -120.11f;
+		radius = 5.5f;
+	}
+
+	if (key == 'u')
+	{
+		angle = 7.11f;
+		radius = -7.5f;
+	}
 }
 
 void key(int key, int x, int y)
 {
-	if (key == GLUT_KEY_DOWN)
-		cameraFront.z += 0.1f;
-	if (key == GLUT_KEY_UP)
-		cameraFront.z -= 0.1f;
-	if (key == GLUT_KEY_LEFT)
-		cameraFront.x -= 0.1f;
-	if (key == GLUT_KEY_RIGHT)
-		cameraFront.x += 0.1f;
+	bool pass = false;
+	const float limit = 0.2f;
+	const float speed = 0.1f;
+	for (auto& model : models)
+		if (model.group != -1)
+			if (modelGroups.at(model.group) == "Character")
+			{
+				if ((key == GLUT_KEY_DOWN && !CheckCollision(0.0f, limit)) || (key == GLUT_KEY_UP && !CheckCollision(0.0f, -limit)) || (key == GLUT_KEY_LEFT && !CheckCollision(-limit, 0.0f)) || (key == GLUT_KEY_RIGHT && !CheckCollision(limit, 0.0f)))
+					pass = true;
+				if (pass)
+					if (key == GLUT_KEY_DOWN)
+						model.TranslateAccum(0.0f, 0.0f, speed);
+					else if (key == GLUT_KEY_UP)
+						model.TranslateAccum(0.0f, 0.0f, -speed);
+					else if (key == GLUT_KEY_LEFT)
+						model.TranslateAccum(-speed, 0.0f, 0.0f);
+					else if (key == GLUT_KEY_RIGHT)
+						model.TranslateAccum(speed, 0.0f, 0.0f);
+			}
 }
-
 
 
 void glut_display_func()
@@ -478,10 +573,8 @@ void glut_display_func()
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
 
-
 	glutSwapBuffers();
 	glutPostRedisplay();
-
 }
 
 void Generate(int value)
@@ -498,12 +591,10 @@ void WriteHeader(std::string code)
 		myFile << code;
 		myFile << "}\n";
 	}
-	else std::cout << "Unable to open file";
 }
 
 int main(int argc, char** argv)
 {
-
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);

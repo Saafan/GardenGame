@@ -43,6 +43,9 @@ std::string Model::GetPrimitveString()
 	if (prim == Primitive::Cube)
 		return "Cube";
 
+	if (prim == Primitive::WireCube)
+		return "CollisionBox";
+
 	if (prim == Primitive::Sphere)
 		return "Sphere";
 
@@ -58,7 +61,7 @@ std::string Model::GetPrimitveString()
 	if (prim == Primitive::Cylinder)
 		return "Cylinder";
 
-
+	return "";
 }
 
 void Model::AssignVariables(Primitive f_prim, float f_size, float f_radius, float f_height, int f_slices, int f_stacks)
@@ -94,6 +97,12 @@ void Model::CreateCube(float size)
 	glutSolidCube(size);
 }
 
+
+void Model::CreateWireCube(float size)
+{
+	AssignVariables(Primitive::WireCube, size);
+	glutWireCube(size);
+}
 
 void Model::CreateTours(float innerRadius, float outerRadius, int sidesNum, int rings)
 {
@@ -136,7 +145,8 @@ void Model::Render()
 
 	glColor3f(color.R, color.G, color.B);
 
-	glTranslatef(position.at(0), position.at(1), position.at(2));
+
+	glTranslatef(position.at(0) + groupTrans.at(0), position.at(1) + groupTrans.at(1), position.at(2) + groupTrans.at(2));
 
 	glRotatef(rotate.at(0), 1, 0, 0);
 	glRotatef(rotate.at(1), 0, 1, 0);
@@ -144,10 +154,11 @@ void Model::Render()
 
 	glScalef(scale.at(0), scale.at(1), scale.at(2));
 
-
-
 	if (prim == Primitive::Cube)
 		CreateCube(size);
+
+	if (prim == Primitive::WireCube)
+		CreateWireCube(size);
 
 	if (prim == Primitive::Cone)
 		CreateCone(size, modelHeight, slices, stacks);
