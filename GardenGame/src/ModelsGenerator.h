@@ -6,7 +6,7 @@ void GenerateModels(std::vector<Model>& models)
  // Sphere0 of Group Character
 Model Sphere0;
 Sphere0.CreateSphere(0.5, 14, 15);
-Sphere0.Translate(0.315, -0.259, 13.35);
+Sphere0.Translate(0.215, -0.259, -1.15);
 Sphere0.Scale(0.754, 0.754, 0.754);
 Sphere0.Rotate(0, 0, 0);
 Sphere0.SetColor(1, 1, 1);
@@ -16,7 +16,7 @@ models.emplace_back(Sphere0);
  // Sphere1 of Group Character
 Model Sphere1;
 Sphere1.CreateSphere(0.5, 22, 10);
-Sphere1.Translate(0.315, 0.308, 13.35);
+Sphere1.Translate(0.215, 0.308, -1.15);
 Sphere1.Scale(0.541, 0.541, 0.541);
 Sphere1.Rotate(0, 0, 0);
 Sphere1.SetColor(1, 1, 1);
@@ -26,7 +26,7 @@ models.emplace_back(Sphere1);
  // CollisionBox2 of Group Character
 Model CollisionBox2;
 CollisionBox2.CreateWireCube(0.5);
-CollisionBox2.Translate(0.322, 0.213, 13.3);
+CollisionBox2.Translate(0.222, 0.213, -1.2);
 CollisionBox2.Scale(1.356, 2.561, 1);
 CollisionBox2.Rotate(0, 0, 0);
 CollisionBox2.SetColor(1, 1, 1);
@@ -37,7 +37,7 @@ models.emplace_back(CollisionBox2);
  // Sphere3 of Group Character
 Model Sphere3;
 Sphere3.CreateSphere(0.5, 16, 15);
-Sphere3.Translate(0.315, 0.697, 13.35);
+Sphere3.Translate(0.215, 0.697, -1.15);
 Sphere3.Scale(0.302, 0.302, 0.302);
 Sphere3.Rotate(0, 0, 0);
 Sphere3.SetColor(1, 1, 1);
@@ -47,7 +47,7 @@ models.emplace_back(Sphere3);
  // Sphere4 of Group Character
 Model Sphere4;
 Sphere4.CreateSphere(0.5, 22, 10);
-Sphere4.Translate(0.276, 0.76, 13.27);
+Sphere4.Translate(0.176, 0.76, -1.23);
 Sphere4.Scale(0.09, 0.09, 0.09);
 Sphere4.Rotate(0, 0, 0);
 Sphere4.SetColor(1e-06, 0, 0);
@@ -57,7 +57,7 @@ models.emplace_back(Sphere4);
  // Cylinder5 of Group Character
 Model Cylinder5;
 Cylinder5.CreateCylinder(0.5, 0.5, 0.5, 10, 10);
-Cylinder5.Translate(0.146, 0.435, 13.35);
+Cylinder5.Translate(0.046, 0.435, -1.15);
 Cylinder5.Scale(0.052, 0.052, 1);
 Cylinder5.Rotate(85.42, 312.7, 0);
 Cylinder5.SetColor(1, 1, 1);
@@ -67,7 +67,7 @@ models.emplace_back(Cylinder5);
  // Torus6 of Group Character
 Model Torus6;
 Torus6.CreateTours(0.1, 0.8, 12, 23);
-Torus6.Translate(0.32, 0.697, 13.25);
+Torus6.Translate(0.22, 0.697, -1.25);
 Torus6.Scale(0.098, 0.098, 0.063);
 Torus6.Rotate(227.4, 0, 360);
 Torus6.SetColor(1e-06, 1e-06, 1e-06);
@@ -77,7 +77,7 @@ models.emplace_back(Torus6);
  // Cylinder7 of Group Character
 Model Cylinder7;
 Cylinder7.CreateCylinder(0.5, 0.5, 0.5, 10, 10);
-Cylinder7.Translate(0.514, 0.384, 13.32);
+Cylinder7.Translate(0.414, 0.384, -1.18);
 Cylinder7.Scale(0.052, 0.052, 1);
 Cylinder7.Rotate(85.42, 47.29, 0);
 Cylinder7.SetColor(1, 1, 1);
@@ -87,7 +87,7 @@ models.emplace_back(Cylinder7);
  // Cone8 of Group Character
 Model Cone8;
 Cone8.CreateCone(0.5, 0.5, 10, 10);
-Cone8.Translate(0.318, 0.693, 13.31);
+Cone8.Translate(0.218, 0.693, -1.19);
 Cone8.Scale(0.187, 0.187, 0.302);
 Cone8.Rotate(0, 180.6, 0);
 Cone8.SetColor(0.9804, 0.6949, 0.009612);
@@ -97,7 +97,7 @@ models.emplace_back(Cone8);
  // Sphere9 of Group Character
 Model Sphere9;
 Sphere9.CreateSphere(0.5, 17, 10);
-Sphere9.Translate(0.367, 0.742, 13.28);
+Sphere9.Translate(0.267, 0.742, -1.22);
 Sphere9.Scale(0.116, 0.116, 0.116);
 Sphere9.Rotate(0, 0, 0);
 Sphere9.SetColor(1e-06, 0, 0);
@@ -538,8 +538,8 @@ models.emplace_back(Cylinder52);
  // Cube53 of Group Park Bench
 Model Cube53;
 Cube53.CreateCube(0.5);
-Cube53.Translate(-0.289, -0.524, 1.914);
-Cube53.Scale(1.725, 0.088, 0.139);
+Cube53.Translate(-0.287, -0.526, 1.914);
+Cube53.Scale(1.85, 0.088, 0.139);
 Cube53.Rotate(52.5, 0, 0);
 Cube53.SetColor(0.6588, 0.4588, 0.2706);
 Cube53.group = 6;
@@ -558,8 +558,8 @@ models.emplace_back(Cylinder54);
  // Cube55 of Group Park Bench
 Model Cube55;
 Cube55.CreateCube(0.5);
-Cube55.Translate(-0.289, -0.483, 1.872);
-Cube55.Scale(1.725, 0.088, 0.139);
+Cube55.Translate(-0.248, -0.483, 1.872);
+Cube55.Scale(1.938, 0.088, 0.139);
 Cube55.Rotate(31.88, 0, 0);
 Cube55.SetColor(0.6588, 0.4588, 0.2706);
 Cube55.group = 6;
@@ -568,8 +568,8 @@ models.emplace_back(Cube55);
  // Cube56 of Group Park Bench
 Model Cube56;
 Cube56.CreateCube(0.5);
-Cube56.Translate(-0.31, -0.42, 1.749);
-Cube56.Scale(1.699, 0.088, 0.139);
+Cube56.Translate(-0.268, -0.42, 1.749);
+Cube56.Scale(2.026, 0.088, 0.139);
 Cube56.Rotate(0, 0, 0);
 Cube56.SetColor(0.6569, 0.4637, 0.2705);
 Cube56.group = 6;
@@ -578,7 +578,7 @@ models.emplace_back(Cube56);
  // Cube57 of Group Park Bench
 Model Cube57;
 Cube57.CreateCube(0.5);
-Cube57.Translate(-0.268, -0.358, 1.563);
+Cube57.Translate(-0.287, -0.358, 1.563);
 Cube57.Scale(1.985, 0.088, 0.139);
 Cube57.Rotate(71.25, 0, 0);
 Cube57.SetColor(0.6588, 0.4588, 0.2706);
@@ -588,8 +588,8 @@ models.emplace_back(Cube57);
  // Cube58 of Group Park Bench
 Model Cube58;
 Cube58.CreateCube(0.5);
-Cube58.Translate(-0.289, -0.399, 1.625);
-Cube58.Scale(1.699, 0.088, 0.139);
+Cube58.Translate(-0.287, -0.399, 1.625);
+Cube58.Scale(1.857, 0.088, 0.139);
 Cube58.Rotate(20.63, 0, 0);
 Cube58.SetColor(0.6588, 0.4588, 0.2706);
 Cube58.group = 6;
@@ -618,8 +618,8 @@ models.emplace_back(Torus60);
  // Cube61 of Group Park Bench
 Model Cube61;
 Cube61.CreateCube(0.5);
-Cube61.Translate(-0.289, -0.441, 1.811);
-Cube61.Scale(1.647, 0.088, 0.139);
+Cube61.Translate(-0.268, -0.441, 1.811);
+Cube61.Scale(1.93, 0.088, 0.139);
 Cube61.Rotate(208.1, 0, 0);
 Cube61.SetColor(0.6588, 0.4588, 0.2706);
 Cube61.group = 6;
@@ -628,8 +628,8 @@ models.emplace_back(Cube61);
  // Cube62 of Group Park Bench
 Model Cube62;
 Cube62.CreateCube(0.5);
-Cube62.Translate(-0.31, -0.42, 1.687);
-Cube62.Scale(1.699, 0.088, 0.139);
+Cube62.Translate(-0.268, -0.42, 1.687);
+Cube62.Scale(1.93, 0.088, 0.139);
 Cube62.Rotate(0, 0, 0);
 Cube62.SetColor(0.6588, 0.4588, 0.2706);
 Cube62.group = 6;
@@ -638,7 +638,7 @@ models.emplace_back(Cube62);
  // Cube63 of Group Park Bench
 Model Cube63;
 Cube63.CreateCube(0.5);
-Cube63.Translate(-0.289, -0.149, 1.543);
+Cube63.Translate(-0.287, -0.149, 1.543);
 Cube63.Scale(1.933, 0.088, 0.139);
 Cube63.Rotate(90, 0, 0);
 Cube63.SetColor(0.6588, 0.4588, 0.2706);
@@ -658,7 +658,7 @@ models.emplace_back(Cylinder64);
  // Cube65 of Group Park Bench
 Model Cube65;
 Cube65.CreateCube(0.5);
-Cube65.Translate(-0.289, -0.274, 1.563);
+Cube65.Translate(-0.287, -0.274, 1.563);
 Cube65.Scale(1.985, 0.088, 0.139);
 Cube65.Rotate(90, 0, 0);
 Cube65.SetColor(0.6588, 0.4588, 0.2706);
