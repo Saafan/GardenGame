@@ -41,7 +41,6 @@ public:
 
 
 	void SetColor(float R, float G, float B);
-	Texture* texture = nullptr;
 
 	void CreateTours(float innerRadius = 0.1f, float outerRadius = 0.8f, int sidesNum = 10, int rings = 10);
 	void CreateCylinder(float baseRadius = 0.5f, float topRadius = 0.5f, float height = 0.5f, float slices = 10, float stacks = 10);

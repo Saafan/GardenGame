@@ -10,6 +10,7 @@
 #include "Model.h"
 #include "ModelsGenerator.h"
 #include "Texture.h"
+#include <math.h>
 #include <map>
 
 
@@ -45,6 +46,9 @@ int HEIGHT = 950;
 
 float radius = 1.5f;
 float angle = -45.11f;
+float elapsedTime = 0.0f;
+
+float gameOverTime = 10;
 
 static float lightColor[]{ 1.0f, 1.0f, 1.0f };
 static float lightPos[]{ 5.6f, 10.0f, 7.5f };
@@ -68,6 +72,34 @@ void SetupCamera()
 }
 
 std::vector<Model> models;
+
+void Animate()
+{
+	float sumTime = 0.0f;
+
+	for (auto& model : models)
+	{
+		if (modelGroups.at(model.group) == "Pergola")
+		{
+			model.TranslateAccum(cos(), cos(), 0);
+		}
+		
+		if (modelGroups.at(model.group) == "Swing")
+		{
+		
+		}
+		
+		if (modelGroups.at(model.group) == "Park Bench")
+		{
+		
+		}
+		
+		if (modelGroups.at(model.group) == "Pergola")
+		{
+		
+		}
+	}
+}
 
 
 void SetupLights()
@@ -188,6 +220,8 @@ void ShowModelAttributes(int i, Model& model, std::string name)
 
 void RenderIMGUI()
 {
+
+
 	static bool showCode = false;
 	ImGui::Begin("3D Editor");
 
@@ -424,9 +458,16 @@ void RenderIMGUI()
 			code << name << ".CreateCylinder(" << (model.size) << ", " << (model.radius) << ", " << (model.modelHeight) << ", " << (model.slices) << ", " << (model.stacks) << ");\n";
 
 		code << name << ".Translate(" << model.position.at(0) + model.groupTrans.at(0) << ", " << model.position.at(1) + model.groupTrans.at(1) << ", " << model.position.at(2) + model.groupTrans.at(2) << ");\n";
-		code << name << ".Scale(" << model.scale.at(0) << ", " << model.scale.at(1) << ", " << model.scale.at(2) << ");\n";
-		code << name << ".Rotate(" << model.rotate.at(0) << ", " << model.rotate.at(1) << ", " << model.rotate.at(2) << ");\n";
-		code << name << ".SetColor(" << model.color.R << ", " << model.color.G << ", " << model.color.B << ");\n";
+
+		if (model.scale.at(0) != 1 || model.scale.at(1) != 1 || model.scale.at(2) != 1)
+			code << name << ".Scale(" << model.scale.at(0) << ", " << model.scale.at(1) << ", " << model.scale.at(2) << ");\n";
+
+		if (model.rotate.at(0) != 0 || model.rotate.at(1) != 0 || model.rotate.at(2) != 0)
+			code << name << ".Rotate(" << model.rotate.at(0) << ", " << model.rotate.at(1) << ", " << model.rotate.at(2) << ");\n";
+
+		if (model.color.R != 1 || model.color.G != 1 || model.color.B != 1)
+			code << name << ".SetColor(" << model.color.R << ", " << model.color.G << ", " << model.color.B << ");\n";
+
 		if (model.collider)
 			code << name << ".collider = " << "true;\n";
 
@@ -496,7 +537,7 @@ bool CheckCollision(float x, float z)
 			for (auto& modelCollision : models)
 				if (modelCollision.collider && &modelCollision != &model && model.group != -1)
 					if (ModelsIntresect(model, modelCollision, x, z) && modelGroups.at(model.group) == "Character")
-							return true;
+						return true;
 	return false;
 }
 
@@ -534,6 +575,11 @@ void key(unsigned char key, int x, int y)
 		angle = 7.11f;
 		radius = -7.5f;
 	}
+
+	if (key == 'z')
+	{
+
+	}
 }
 
 void key(int key, int x, int y)
@@ -559,6 +605,11 @@ void key(int key, int x, int y)
 			}
 }
 
+
+void timer(int value)
+{
+
+}
 
 void glut_display_func()
 {
@@ -593,12 +644,20 @@ void WriteHeader(std::string code)
 	}
 }
 
+void timer(int value)
+{
+	if (gameOverTime >= 1)
+		gameOverTime -= 1;
+	glutTimerFunc(1000, timer, 1000);
+}
+
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WIDTH, HEIGHT);
+
 
 	glutCreateWindow("Garden Game");
 
@@ -623,6 +682,8 @@ int main(int argc, char** argv)
 	gluOrtho2D(0, WIDTH, 0, HEIGHT);
 
 	glutDisplayFunc(glut_display_func);
+
+	glutTimerFunc(1000, timer, 1000);
 
 	//glutReshapeFunc(ReshapeCallback);
 
