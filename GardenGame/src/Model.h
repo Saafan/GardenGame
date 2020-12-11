@@ -34,6 +34,7 @@ public:
 	void Scale(float f_x, float f_y, float f_z);
 
 	void Rotate(float x, float y, float z);
+	void RotateAccum(float x, float y, float z);
 
 	Primitive GetPrimitive() const { return prim; }
 	std::string GetPrimitveString();

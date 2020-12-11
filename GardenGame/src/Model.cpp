@@ -38,6 +38,13 @@ void Model::Rotate(float x, float y, float z)
 	rotate.at(2) = z;
 }
 
+void Model::RotateAccum(float x, float y, float z)
+{
+	rotate.at(0) += x;
+	rotate.at(1) += y;
+	rotate.at(2) += z;
+}
+
 std::string Model::GetPrimitveString()
 {
 	if (prim == Primitive::Cube)
@@ -101,7 +108,7 @@ void Model::CreateCube(float size)
 void Model::CreateWireCube(float size)
 {
 	AssignVariables(Primitive::WireCube, size);
-	glutWireCube(size);
+	//glutWireCube(size);
 }
 
 void Model::CreateTours(float innerRadius, float outerRadius, int sidesNum, int rings)

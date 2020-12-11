@@ -147,7 +147,6 @@
   <ItemGroup>
     <ClInclude Include="src\Model.h" />
     <ClInclude Include="src\ModelsGenerator.h" />
-    <ClInclude Include="src\Object.h" />
     <ClInclude Include="src\Randomize.h" />
     <ClInclude Include="src\Renderer.h" />
     <ClInclude Include="src\Texture.h" />
@@ -164,7 +163,6 @@
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Model.cpp" />
-    <ClCompile Include="src\Object.cpp" />
     <ClCompile Include="src\Randomize.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="vendor\imgui\imgui.cpp" />
